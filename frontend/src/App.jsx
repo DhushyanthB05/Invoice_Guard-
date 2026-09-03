@@ -17,7 +17,8 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
-const API_BASE = 'http://localhost:5000/api';
+axios.defaults.headers.common['Bypass-Tunnel-Reminder'] = 'true';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // --- CONTEXT FOR TOAST NOTIFICATIONS --- //
 const ToastContext = createContext();
