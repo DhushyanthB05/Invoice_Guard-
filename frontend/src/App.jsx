@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { AlertTriangle, CheckCircle, Info, UploadCloud, ShieldAlert, FileText, Activity } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info, ShieldAlert, Activity, Search, Bell, User, FileText, ArrowRight, X } from 'lucide-react';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -10,213 +10,345 @@ const API_BASE = 'http://localhost:5000/api';
 
 function App() {
   const [invoices, setInvoices] = useState([]);
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [analyzingId, setAnalyzingId] = useState(null);
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
+  const reportRef = useRef(null);
 
   useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = () => {
     axios.get(`${API_BASE}/invoices`)
       .then(res => setInvoices(res.data))
       .catch(err => setError("Failed to load demo invoices. Is the backend running?"));
-  }, []);
+  };
 
-  const handleAnalyze = async () => {
-    if (!selectedInvoiceId) return;
+  const handleAnalyze = async (invoiceId) => {
+    setAnalyzingId(invoiceId);
     setLoading(true);
     setError(null);
     setReport(null);
+    
     try {
-      const res = await axios.post(`${API_BASE}/analyze`, { invoice_id: selectedInvoiceId });
+      const res = await axios.post(`${API_BASE}/analyze`, { invoice_id: invoiceId });
       setReport(res.data);
+      // Smooth scroll to report after a short delay to allow render
+      setTimeout(() => {
+        reportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (err) {
       setError(err.response?.data?.error || "Analysis failed. Ensure Python ML service is running.");
     } finally {
       setLoading(false);
+      setAnalyzingId(null);
     }
+  };
+
+  const closeReport = () => {
+    setReport(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const renderGauge = (score) => {
     let color = score > 60 ? '#ef4444' : score > 30 ? '#f59e0b' : '#10b981';
     return (
-      <div className="w-48 h-48 mx-auto relative">
+      <div className="w-56 h-56 mx-auto relative drop-shadow-xl">
         <Doughnut 
           data={{
             labels: ['Risk', 'Safe'],
             datasets: [{
               data: [score, 100 - score],
-              backgroundColor: [color, '#334155'], // Dark background for the remaining part
+              backgroundColor: [color, '#334155'],
               borderWidth: 0,
               circumference: 180,
               rotation: 270,
             }]
           }}
           options={{
-            cutout: '80%',
-            plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            cutout: '82%',
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            maintainAspectRatio: true,
           }}
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center pt-8">
-          <span className="text-4xl font-bold" style={{color}}>{score}</span>
-          <span className="text-sm text-slate-400">/ 100</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pt-10">
+          <span className="text-5xl font-bold tracking-tighter" style={{color}}>{score}</span>
+          <span className="text-sm text-slate-400 font-medium tracking-wide uppercase mt-1">Risk Score</span>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200">
-      <nav className="bg-slate-950 text-white p-4 shadow-md border-b border-slate-800">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <ShieldAlert className="w-8 h-8 text-blue-500" />
-            <h1 className="text-2xl font-bold tracking-wide">InvoiceGuard <span className="text-blue-500">AI</span></h1>
+    <div className="min-h-screen bg-[#0b1120] text-slate-200 font-sans selection:bg-blue-500/30">
+      
+      {/* Enterprise Header */}
+      <nav className="sticky top-0 z-50 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-blue-600/20 p-2 rounded-lg border border-blue-500/30">
+              <ShieldAlert className="w-6 h-6 text-blue-400" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              InvoiceGuard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">AI</span>
+            </h1>
           </div>
-          <p className="text-sm text-slate-400 hidden md:block">AI-Powered Invoice & Payment Risk Intelligence</p>
+          
+          <div className="flex items-center space-x-6">
+            <div className="hidden md:flex items-center text-sm font-medium text-slate-400">
+              <span className="flex items-center"><Activity className="w-4 h-4 mr-2 text-emerald-400"/> System Online</span>
+            </div>
+            <div className="h-6 w-px bg-slate-700 hidden md:block"></div>
+            <button className="text-slate-400 hover:text-white transition-colors relative">
+              <Bell className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            </button>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-700 to-slate-600 border border-slate-500 flex items-center justify-center shadow-inner cursor-pointer">
+              <User className="w-4 h-4 text-slate-200" />
+            </div>
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-8">
+      <main className="max-w-7xl mx-auto px-6 py-8">
         
-        {/* Selection Area */}
-        <div className="bg-slate-800 rounded-xl shadow-lg p-6 mb-8 border border-slate-700">
-          <h2 className="text-lg font-semibold mb-4 flex items-center text-white"><FileText className="w-5 h-5 mr-2 text-blue-400"/> Select Demo Invoice</h2>
-          
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <select 
-              className="flex-1 p-3 bg-slate-900 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full text-slate-200"
-              value={selectedInvoiceId}
-              onChange={(e) => setSelectedInvoiceId(e.target.value)}
-            >
-              <option value="" className="text-slate-400">-- Choose a synthetic invoice --</option>
-              {invoices.map(inv => (
-                <option key={inv.id} value={inv.id}>
-                  {inv.id} - ₹{parseFloat(inv.amount).toLocaleString()} ({inv.scenario})
-                </option>
-              ))}
-            </select>
-            <button 
-              onClick={handleAnalyze}
-              disabled={loading || !selectedInvoiceId}
-              className="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 px-8 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-blue-900/50"
-            >
-              {loading ? <Activity className="w-5 h-5 animate-spin mr-2" /> : <UploadCloud className="w-5 h-5 mr-2" />}
-              {loading ? 'Analyzing...' : 'Analyze Risk'}
-            </button>
+        {/* Page Title & Stats (Mocked for MVP Professional feel) */}
+        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Financing Risk Center</h2>
+            <p className="text-slate-400 mt-2">Evaluate and approve supply-chain invoices using AI-driven risk intelligence.</p>
           </div>
-          {error && (
-            <div className="mt-4 p-4 bg-red-900/30 text-red-400 rounded-lg border border-red-800 flex items-center">
-              <AlertTriangle className="w-5 h-5 mr-2" />
-              {error}
+        </header>
+
+        {error && (
+          <div className="mb-8 p-4 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20 flex items-center backdrop-blur-sm">
+            <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
+        {/* Invoice Queue Table (Replaces the basic dropdown) */}
+        <div className="bg-[#111827] rounded-2xl border border-slate-800 shadow-2xl overflow-hidden mb-12 relative z-10">
+          <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gradient-to-b from-slate-800/50 to-transparent">
+            <h3 className="text-lg font-semibold text-white flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-blue-400"/> 
+              Pending Invoice Queue
+            </h3>
+            <div className="relative w-full sm:w-64">
+               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+               <input 
+                 type="text" 
+                 placeholder="Search invoices..." 
+                 className="w-full bg-[#0b1120] border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none" 
+               />
             </div>
-          )}
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#0b1120]/50 text-slate-400 text-xs uppercase tracking-wider font-semibold border-b border-slate-800">
+                  <th className="p-4 pl-6">Invoice ID</th>
+                  <th className="p-4">Supplier</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4 hidden md:table-cell">Due Date</th>
+                  <th className="p-4 text-right pr-6">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="p-8 text-center text-slate-500">
+                      Loading synthetic invoices...
+                    </td>
+                  </tr>
+                ) : invoices.map(inv => (
+                  <tr key={inv.id} className="hover:bg-slate-800/30 transition-colors group">
+                    <td className="p-4 pl-6 font-medium text-slate-200">
+                      {inv.id}
+                      <div className="text-xs text-slate-500 mt-1">{inv.scenario}</div>
+                    </td>
+                    <td className="p-4 text-slate-300">{inv.supplier_id}</td>
+                    <td className="p-4 font-semibold text-white">₹{parseFloat(inv.amount).toLocaleString()}</td>
+                    <td className="p-4 text-slate-400 hidden md:table-cell">{inv.due_date}</td>
+                    <td className="p-4 pr-6 text-right">
+                      <button 
+                        onClick={() => handleAnalyze(inv.id)}
+                        disabled={loading && analyzingId !== inv.id}
+                        className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all
+                          ${analyzingId === inv.id 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' 
+                            : 'bg-slate-800 text-blue-400 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 group-hover:bg-blue-600/10'
+                          } disabled:opacity-50`}
+                      >
+                        {analyzingId === inv.id ? (
+                          <><Activity className="w-4 h-4 animate-spin mr-2" /> Analyzing</>
+                        ) : (
+                          <>Analyze <ArrowRight className="w-4 h-4 ml-2" /></>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Report Area */}
+        {/* Detailed Risk Report */}
         {report && (
-          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-            {/* Header */}
-            <div className={`p-6 text-white ${report.risk.risk_level === 'HIGH' ? 'bg-red-900/80 border-b border-red-800' : report.risk.risk_level === 'MEDIUM' ? 'bg-amber-900/80 border-b border-amber-800' : 'bg-emerald-900/80 border-b border-emerald-800'}`}>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold mb-1">Risk Assessment Report</h2>
-                  <p className="opacity-90 text-slate-200">Invoice: {report.invoice.id}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm uppercase tracking-wider opacity-90 mb-1 text-slate-200">Recommendation</div>
-                  <div className="text-3xl font-bold bg-black/30 px-4 py-1 rounded-md inline-block shadow-inner">
-                    {report.risk.recommendation}
-                  </div>
-                </div>
-              </div>
+          <div ref={reportRef} className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white flex items-center">
+                <ShieldAlert className="w-6 h-6 mr-3 text-blue-500" />
+                Intelligence Report
+              </h2>
+              <button onClick={closeReport} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-full transition-colors border border-slate-700">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-[#111827] rounded-2xl shadow-2xl border border-slate-800 overflow-hidden relative">
               
-              {/* Left Column - Score & Components */}
-              <div className="md:col-span-1 border-r border-slate-700 pr-0 md:pr-8">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-medium text-slate-300 mb-2">Overall Risk Score</h3>
-                  {renderGauge(report.risk.risk_score)}
-                  <div className={`text-xl font-bold mt-2 ${report.risk.risk_level === 'HIGH' ? 'text-red-400' : report.risk.risk_level === 'MEDIUM' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                    {report.risk.risk_level} RISK
-                  </div>
+              {/* Dynamic Status Banner */}
+              <div className={`px-8 py-5 flex flex-col md:flex-row justify-between items-center relative overflow-hidden
+                ${report.risk.risk_level === 'HIGH' ? 'bg-gradient-to-r from-red-900/90 to-red-950 border-b border-red-800' 
+                : report.risk.risk_level === 'MEDIUM' ? 'bg-gradient-to-r from-amber-900/90 to-amber-950 border-b border-amber-800' 
+                : 'bg-gradient-to-r from-emerald-900/90 to-emerald-950 border-b border-emerald-800'}`}>
+                
+                {/* Decorative background glow */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
+                
+                <div className="relative z-10 text-center md:text-left mb-4 md:mb-0">
+                  <p className="text-sm font-medium opacity-80 text-white uppercase tracking-wider mb-1">Assessment Complete</p>
+                  <h3 className="text-3xl font-bold text-white">{report.invoice.id}</h3>
                 </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Risk Breakdown</h4>
-                  {[
-                    { label: 'Invoice Anomaly', val: report.risk.components.invoice_risk },
-                    { label: 'Payment Behavior', val: report.risk.components.payment_risk },
-                    { label: 'Transaction / Dup', val: report.risk.components.transaction_risk }
-                  ].map((c, i) => (
-                    <div key={i}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-slate-300">{c.label}</span>
-                        <span className="font-medium text-slate-100">{c.val}/100</span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-2">
-                        <div className={`h-2 rounded-full shadow-sm ${c.val > 60 ? 'bg-red-500' : c.val > 30 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: \`\${c.val}%\` }}></div>
-                      </div>
-                    </div>
-                  ))}
+                
+                <div className="relative z-10 flex items-center bg-black/40 backdrop-blur-sm px-6 py-3 rounded-xl border border-white/10 shadow-inner">
+                  <span className="text-sm text-slate-300 uppercase tracking-widest mr-4">Decision</span>
+                  <span className="text-2xl font-bold text-white tracking-tight">{report.risk.recommendation}</span>
                 </div>
               </div>
 
-              {/* Right Column - Details */}
-              <div className="md:col-span-2 space-y-8">
+              <div className="p-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
                 
-                {/* Key Factors */}
-                <section>
-                  <h3 className="text-xl font-semibold text-white mb-4 border-b border-slate-700 pb-2">Key Risk Factors (Explainability)</h3>
-                  <div className="space-y-3">
-                    {report.risk.risk_factors.map((factor, idx) => (
-                      <div key={idx} className="flex items-start bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-                        {report.risk.risk_level === 'LOW' ? (
-                          <CheckCircle className="w-6 h-6 text-emerald-400 mr-3 mt-0.5 flex-shrink-0" />
-                        ) : (
-                          <AlertTriangle className="w-6 h-6 text-amber-400 mr-3 mt-0.5 flex-shrink-0" />
-                        )}
-                        <span className="text-slate-200 font-medium">{factor}</span>
-                      </div>
-                    ))}
+                {/* Left Column - Score Matrix (4 cols) */}
+                <div className="lg:col-span-4 flex flex-col">
+                  <div className="bg-[#0b1120] rounded-xl p-6 border border-slate-800 shadow-inner mb-6 flex-1">
+                    {renderGauge(report.risk.risk_score)}
+                    
+                    <div className="mt-8 space-y-5">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800 pb-2">Risk Matrix Breakdown</h4>
+                      {[
+                        { label: 'Invoice Anomaly', val: report.risk.components.invoice_risk },
+                        { label: 'Payment Behavior', val: report.risk.components.payment_risk },
+                        { label: 'Transaction Risk', val: report.risk.components.transaction_risk }
+                      ].map((c, i) => (
+                        <div key={i} className="group">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-slate-300 group-hover:text-white transition-colors">{c.label}</span>
+                            <span className="font-semibold text-slate-100">{c.val}/100</span>
+                          </div>
+                          <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-1000 ease-out
+                                ${c.val > 60 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' 
+                                : c.val > 30 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' 
+                                : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`} 
+                              style={{ width: `${c.val}%` }}>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </section>
+                </div>
 
-                {/* Details Grid */}
-                <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-                    <h4 className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">Invoice Details</h4>
-                    <ul className="space-y-2 text-sm">
-                      <li><span className="text-slate-400 w-24 inline-block">Amount:</span> <span className="font-semibold text-white">₹{parseFloat(report.invoice.amount).toLocaleString()}</span></li>
-                      <li><span className="text-slate-400 w-24 inline-block">Date:</span> <span className="text-slate-200">{report.invoice.date}</span></li>
-                      <li><span className="text-slate-400 w-24 inline-block">Due Date:</span> <span className="text-slate-200">{report.invoice.due_date}</span></li>
-                    </ul>
+                {/* Right Column - Intelligence & Data (8 cols) */}
+                <div className="lg:col-span-8 space-y-6">
+                  
+                  {/* AI Explainability */}
+                  <div className="bg-gradient-to-br from-slate-800/50 to-[#0b1120] p-6 rounded-xl border border-slate-700 shadow-sm relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-5 flex items-center">
+                      <ShieldAlert className="w-4 h-4 mr-2 text-blue-400"/> AI Risk Explainability
+                    </h3>
+                    <div className="space-y-3">
+                      {report.risk.risk_factors.map((factor, idx) => (
+                        <div key={idx} className="flex items-start bg-[#0b1120]/80 p-4 rounded-lg border border-slate-800/50 backdrop-blur-sm transition-transform hover:-translate-y-0.5 duration-200">
+                          {report.risk.risk_level === 'LOW' ? (
+                            <CheckCircle className="w-5 h-5 text-emerald-400 mr-4 mt-0.5 flex-shrink-0 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]" />
+                          ) : (
+                            <AlertTriangle className="w-5 h-5 text-amber-400 mr-4 mt-0.5 flex-shrink-0 drop-shadow-[0_0_5px_rgba(251,191,36,0.4)]" />
+                          )}
+                          <span className="text-slate-200 leading-relaxed">{factor}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-                    <h4 className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">Parties Involved</h4>
-                    <ul className="space-y-2 text-sm">
-                      <li><span className="text-slate-400 w-24 inline-block">Buyer:</span> <span className="font-semibold text-white">{report.buyer.name}</span></li>
-                      <li><span className="text-slate-400 w-24 inline-block">Avg Amount:</span> <span className="text-slate-200">₹{parseFloat(report.buyer.avg_amount).toLocaleString()}</span></li>
-                      <li><span className="text-slate-400 w-24 inline-block">Supplier:</span> <span className="text-slate-200">{report.supplier.name}</span></li>
-                    </ul>
-                  </div>
-                </section>
+                  {/* Transaction Context Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-[#0b1120] p-5 rounded-xl border border-slate-800">
+                      <h4 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Transaction Profile</h4>
+                      <dl className="space-y-3 text-sm">
+                        <div className="flex justify-between border-b border-slate-800/50 pb-2">
+                          <dt className="text-slate-400">Target Amount</dt>
+                          <dd className="font-bold text-white">₹{parseFloat(report.invoice.amount).toLocaleString()}</dd>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-800/50 pb-2">
+                          <dt className="text-slate-400">Issue Date</dt>
+                          <dd className="text-slate-200">{report.invoice.date}</dd>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-800/50 pb-2">
+                          <dt className="text-slate-400">Due Date</dt>
+                          <dd className="text-slate-200">{report.invoice.due_date}</dd>
+                        </div>
+                        <div className="flex justify-between pb-1">
+                          <dt className="text-slate-400">Supplier Entity</dt>
+                          <dd className="text-slate-200 font-medium">{report.supplier.name}</dd>
+                        </div>
+                      </dl>
+                    </div>
 
-                {/* Payment History Visual */}
-                <section>
-                  <h3 className="text-xl font-semibold text-white mb-4 border-b border-slate-700 pb-2">Historical Payment Behavior</h3>
-                  <div className="bg-slate-900/50 p-4 border border-slate-700 rounded-lg">
-                    <div className="h-48">
+                    <div className="bg-[#0b1120] p-5 rounded-xl border border-slate-800">
+                      <h4 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Buyer Intelligence</h4>
+                      <dl className="space-y-3 text-sm">
+                        <div className="flex justify-between border-b border-slate-800/50 pb-2">
+                          <dt className="text-slate-400">Buyer Entity</dt>
+                          <dd className="font-bold text-blue-400">{report.buyer.name}</dd>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-800/50 pb-2">
+                          <dt className="text-slate-400">Historical Avg</dt>
+                          <dd className="text-slate-200">₹{parseFloat(report.buyer.avg_amount).toLocaleString()}</dd>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-800/50 pb-2">
+                          <dt className="text-slate-400">Historical Delay</dt>
+                          <dd className="text-slate-200">{report.buyer.avg_delay} days</dd>
+                        </div>
+                        <div className="flex justify-between pb-1">
+                          <dt className="text-slate-400">Delay Frequency</dt>
+                          <dd className="text-slate-200 font-medium">{report.buyer.delayed_count} / {report.buyer.total_count} invoices</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
+
+                  {/* Visual Analytics */}
+                  <div className="bg-[#0b1120] p-5 rounded-xl border border-slate-800">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Behavioral Analytics</h3>
+                    <div className="h-40">
                       <Bar 
                         data={{
-                          labels: ['Previous Invoices', 'Delayed Payments'],
+                          labels: ['Total Paid Invoices', 'Late Payments'],
                           datasets: [{
-                            label: 'Count',
+                            label: 'Volume',
                             data: [report.buyer.total_count, report.buyer.delayed_count],
                             backgroundColor: ['#3b82f6', '#ef4444'],
-                            borderRadius: 4
+                            borderRadius: 6,
+                            barThickness: 30,
                           }]
                         }}
                         options={{
@@ -225,29 +357,26 @@ function App() {
                           scales: { 
                             y: { 
                               beginAtZero: true,
-                              grid: { color: '#334155' },
-                              ticks: { color: '#94a3b8' }
+                              grid: { color: '#1e293b', drawBorder: false },
+                              ticks: { color: '#64748b', stepSize: 5 }
                             },
                             x: {
-                              grid: { color: '#334155' },
-                              ticks: { color: '#94a3b8' }
+                              grid: { display: false },
+                              ticks: { color: '#94a3b8', font: { weight: '500' } }
                             }
                           }
                         }}
                       />
                     </div>
-                    <p className="text-center text-sm text-slate-400 mt-4">
-                      Buyer has an average payment delay of <strong className="text-slate-200">{report.buyer.avg_delay} days</strong>.
-                    </p>
                   </div>
-                </section>
 
+                </div>
               </div>
-            </div>
-            
-            <div className="bg-slate-900/80 p-4 text-center text-xs text-slate-500 border-t border-slate-700">
-              <Info className="w-4 h-4 inline mr-1" />
-              Final financing decision remains with the financier. This is synthetic demonstration data.
+              
+              <div className="bg-[#0b1120] p-4 flex justify-between items-center text-xs text-slate-500 border-t border-slate-800">
+                <span className="flex items-center"><Info className="w-4 h-4 mr-2" /> Generated by NeuralNexus Engine v2.0 (Synthetic Demo Data)</span>
+                <span>ID: {report.invoice.id}-{Date.now().toString().slice(-6)}</span>
+              </div>
             </div>
           </div>
         )}
