@@ -1,0 +1,4 @@
+id,name,avg_amount,avg_delay,delayed_count,total_count
+B001,Alpha Retail,50000,2,1,20
+B002,Beta Electronics,100000,5,2,15
+B003,Gamma Trading,75000,45,8,10
