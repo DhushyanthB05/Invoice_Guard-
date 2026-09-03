@@ -1,0 +1,11 @@
+id,name,avg_amount,avg_delay,delayed_count,total_count
+B-001,Tata Motors,1500000,5,2,50
+B-002,Reliance Retail,500000,2,1,120
+B-003,Larsen & Toubro,2500000,15,12,80
+B-004,Hindustan Unilever,300000,1,0,200
+B-005,Mahindra & Mahindra,800000,8,4,60
+B-006,Infosys Technologies,120000,3,1,40
+B-007,Wipro Enterprises,400000,28,15,90
+B-008,Adani Ports,3500000,12,5,45
+B-009,Maruti Suzuki,2000000,4,2,110
+B-010,Asian Paints,250000,2,1,150
