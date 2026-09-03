@@ -1,3 +1,11 @@
-id,name
-S001,Tech Corp
-S002,Global Supplies
+id,name,category
+S-101,Sri Balaji Auto Parts,MSME
+S-102,Chennai Steel Works,MSME
+S-103,Kaveri Logistics Pvt Ltd,MSME
+S-104,Madras Packaging,MSME
+S-105,Vanguard Electronics,MSME
+S-106,Delta Precision Machining,MSME
+S-107,TechNova Solutions,MSME
+S-108,Apex Raw Materials,MSME
+S-109,Global Exim Traders,MSME
+S-110,Southern Spares MSME,MSME

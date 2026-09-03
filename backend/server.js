@@ -40,52 +40,28 @@ app.get('/api/invoices', (req, res) => {
 
 app.post('/api/analyze', async (req, res) => {
     try {
-        const { invoice_id } = req.body;
+        const { invoice_id, invoice_data } = req.body;
         
-        const invoices = parseCSV('../sample-data/invoices.csv');
-        const invoice = invoices.find(i => i.id === invoice_id);
-        if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-
-        const buyers = parseCSV('../sample-data/buyers.csv');
-        const buyer = buyers.find(b => b.id === invoice.buyer_id);
-
-        const suppliers = parseCSV('../sample-data/suppliers.csv');
-        const supplier = suppliers.find(s => s.id === invoice.supplier_id);
-
-        const payload = {
-            invoice_id: invoice.id,
-            supplier_id: invoice.supplier_id,
-            buyer_id: invoice.buyer_id,
-            invoice_amount: parseFloat(invoice.amount),
-            invoice_date: invoice.date,
-            average_invoice_amount: parseFloat(buyer.avg_amount || 0),
-            average_payment_delay: parseFloat(buyer.avg_delay || 0),
-            previous_delayed_payments: parseInt(buyer.delayed_count || 0),
-            total_previous_invoices: parseInt(buyer.total_count || 0),
-            is_duplicate: invoice.is_duplicate === 'True'
-        };
-
-        const mlResponse = await axios.post(`${ML_URL}/predict-risk`, payload);
+        // Forward directly to the new FastAPI ML engine
+        const mlResponse = await axios.post(`${ML_URL}/analyze`, {
+            invoice_id,
+            invoice_data
+        });
+        
         const result = mlResponse.data;
 
         riskResults.push({
             id: riskResults.length + 1,
             invoice_id,
-            risk_score: result.risk_score,
-            risk_level: result.risk_level,
-            risk_factors: result.risk_factors,
-            recommendation: result.recommendation,
+            risk_score: result.risk.risk_score,
+            risk_level: result.risk.risk_level,
+            recommendation: result.risk.recommendation,
             created_at: new Date()
         });
 
-        res.json({
-            invoice,
-            buyer,
-            supplier,
-            risk: result
-        });
+        res.json(result);
     } catch (err) {
-        console.error(err);
+        console.error(err?.response?.data || err.message);
         res.status(500).json({ error: 'Analysis failed', details: err.message });
     }
 });

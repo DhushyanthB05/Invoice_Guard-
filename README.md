@@ -1,87 +1,74 @@
-# InvoiceGuard AI 🛡️
+# 🛡️ InvoiceGuard AI
+**Agentic AI-Powered Risk Assessment for Supply Chain Finance**
 
-**AI-Powered Invoice & Payment Risk Intelligence for Safer Supply-Chain Financing**
+![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?logo=react)
+![Python](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)
+![NodeJS](https://img.shields.io/badge/Proxy-Node.js-339933?logo=nodedotjs)
+![MachineLearning](https://img.shields.io/badge/AI-Scikit--Learn-F7931E?logo=scikitlearn)
 
-Built for **Innovation Unbound 2026 — VIT Chennai** by team **NeuralNexus**.
+> **Built for Innovation Unbound 2026**  
+> **Theme Connection:** *Preventing Financial Distress Before It Becomes a Crisis*
 
-## 📖 Problem
-Supply-chain financing requires reliable risk assessment. Hidden transaction-level risks (such as unusual invoice amounts, shifting payment delays, or duplicate invoices) are difficult to identify early. 
+## 📖 The Problem
+Traditional invoice financing (factoring/discounting) is broken. Financiers rely on static credit scores and manual document verification. This leads to slow approval times, high vulnerability to fraud, and an inability to properly assess the risk of MSME suppliers who lack formal credit histories.
 
-## 💡 Solution
-InvoiceGuard AI acts as a decision support system. It combines invoice-level anomaly detection with historical buyer payment behavior to produce an explainable financing-risk assessment. 
+Most importantly, when an Anchor Buyer pays late, it triggers a cascading cash-flow crisis down the entire supply chain.
 
-**Note: The AI supports the financier; it does not replace the human decision.**
+## 💡 The Solution
+**InvoiceGuard AI** is a next-generation decision support system for underwriters. It replaces generic credit scoring with an **Autonomous Multi-Agent Risk Engine** that analyzes the *current invoice* alongside the *historical payment behavior* of the buyer at the transaction level. 
 
-## ✨ Features
-- **Explainable Risk Score (0-100)**: Transparent components (Invoice, Payment, Transaction).
-- **Anomaly Detection**: Identifies unusually high invoices based on buyer history.
-- **Duplicate Detection**: Flags potential double-financing attempts.
-- **Payment Behavior Analysis**: Tracks average delays and late payment frequencies.
-- **Interactive Dashboard**: Professional FinTech UI with visualizations.
+By acting as an early-warning radar, we prevent financiers from absorbing toxic debt and stabilize the MSME ecosystem before a delayed payment cascades into a financial crisis.
 
-## 🏗️ Architecture & Technology Stack
-- **Frontend**: React.js, Vite, Tailwind CSS, Chart.js
-- **Backend**: Node.js, Express.js
-- **AI/ML Risk Engine**: Python, FastAPI
-- **Database**: SQLite (Zero-setup MVP fallback for PostgreSQL)
+---
 
-## 📁 Project Structure
-- `/frontend`: React dashboard
-- `/backend`: Node.js Express API
-- `/ml-risk-engine`: Python FastAPI Risk Engine
-- `/sample-data`: Synthetic demonstration datasets
+## ✨ Core Features
 
-## ⚙️ How It Works (Risk Score Methodology)
-1. **Invoice Risk (30%)**: Checks if the invoice amount significantly deviates from the buyer's historical average.
-2. **Payment Risk (40%)**: Assesses the frequency and severity of past delayed payments.
-3. **Transaction Risk (30%)**: Flags identical or highly similar invoices (duplicate patterns).
+### 1. The Multi-Agent Swarm Architecture 🤖
+InvoiceGuard utilizes a simulated swarm of specialized AI agents working sequentially:
+*   **Extraction Agent:** Parses the uploaded invoice payload.
+*   **KYC Agent:** Validates Counterparty IDs against registries.
+*   **ML Risk Swarm:** Executes mathematical outlier detection.
+*   **Policy Agent:** Applies human-in-the-loop routing guardrails.
 
-Scores map to Recommendations:
-- `0-30`: **LOW** (APPROVE)
-- `31-60`: **MEDIUM** (REVIEW)
-- `61-100`: **HIGH** (ESCALATE)
+### 2. Machine Learning Anomaly Detection 🧠
+Powered by a Python FastAPI backend, the system runs a **Scikit-Learn Isolation Forest** model in real-time. It analyzes the incoming invoice against the buyer's historical averages to instantly catch fraudulent amounts, abnormal volumes, and duplicate submissions.
 
-## 📊 Dataset Disclaimer
-**All included datasets are synthetic and intended for demonstration purposes only.** We do not use real, confidential banking data.
+### 3. SHAP Explainability (White-Box AI) 📊
+InvoiceGuard implements **SHAP** principles to explain exactly *why* a score was generated (e.g., *"Invoice amount is 400% higher than historical average"*), ensuring full regulatory compliance and underwriter trust.
 
-## 🚀 Installation & Running the Application
+### 4. Generative AI Auto-Draft Communications ✨
+When an invoice is flagged for review, the system uses an LLM to automatically draft a polite, highly-contextualized email to the supplier, injecting the specific mathematical reasons for the delay to save underwriters hours of manual communication.
 
-### 1. ML Risk Engine (Python)
-\`\`\`bash
+### 5. Enterprise-Grade Dashboard & PDF Exports 📄
+A stunning, responsive React frontend featuring:
+*   Live Redux-powered Smart Queue with batch processing capabilities.
+*   Interactive Counterparty Trust Score matrices.
+*   Zero-dependency, native high-resolution **PDF Report Export** for audit trails.
+*   A fully interactive floating AI Copilot widget.
+
+---
+
+## 🚀 How to Run Locally
+
+### 1. Start the Machine Learning Engine (Python)
+```bash
 cd ml-risk-engine
-python -m venv venv
-venv\\Scripts\\activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-\`\`\`
+python -m uvicorn src.api.main:app --reload --port 8000
+```
 
-### 2. Backend (Node.js)
-\`\`\`bash
+### 2. Start the Backend API Proxy (Node.js)
+```bash
 cd backend
 npm install
 node server.js
-\`\`\`
-*(Runs on port 5000 by default)*
+```
 
-### 3. Frontend (React)
-\`\`\`bash
+### 3. Start the Frontend Application (React/Vite)
+```bash
 cd frontend
 npm install
 npm run dev
-\`\`\`
-*(Runs on port 5173)*
+```
 
-## 🧪 Demo Scenarios (Available in the UI)
-1. **LOW RISK**: Normal invoice, good buyer. (Expect: APPROVE)
-2. **HIGH AMOUNT**: Unusually large invoice amount. (Expect: REVIEW/ESCALATE)
-3. **DUPLICATE**: Potential double-financing attempt. (Expect: ESCALATE)
-4. **PAYMENT DELAYS**: Buyer has repeated late payments. (Expect: REVIEW)
-5. **MULTIPLE RISKS**: High amount + delayed payments + duplicate. (Expect: ESCALATE)
-
-## 🔮 Future Scope
-- Integration with GST/E-Invoicing APIs.
-- Account Aggregator (AA) framework for real-time bank statement analysis.
-- External credit bureau data integration.
-
----
-*Created by NeuralNexus for Innovation Unbound 2026*
+Navigate to `http://localhost:5173` to view the application!

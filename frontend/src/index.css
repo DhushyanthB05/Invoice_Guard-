@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer utilities {
   .animate-blob {
@@ -24,4 +22,23 @@
 body {
     background-color: #f8fafc;
     color: #0f172a;
+}
+
+@media print {
+  body, main, .bg-slate-50 {
+    background-color: #ffffff !important;
+  }
+  .hide-on-print {
+    display: none !important;
+  }
+  .ml-64 {
+    margin-left: 0 !important;
+  }
+  .shadow-xl, .shadow-2xl, .drop-shadow-xl {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0;
+  }
+  .pb-20 {
+    padding-bottom: 0 !important;
+  }
 }
